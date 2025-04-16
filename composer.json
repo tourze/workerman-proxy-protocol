@@ -19,6 +19,10 @@
     }
   },
   "require-dev": {
-    "phpunit/phpunit": "^10.0"
+    "phpunit/phpunit": "^10.0",
+    "phpstan/phpstan": "^2.1"
+  },
+  "scripts": {
+    "phpstan": "phpstan analyse src -l 1"
   }
 }
