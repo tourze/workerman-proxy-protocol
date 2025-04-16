@@ -1,0 +1,24 @@
+{
+  "name": "tourze/workerman-proxy-protocol",
+  "description": "ProxyProtocol V1",
+  "license": "MIT",
+  "require": {
+    "php": "^8.1",
+    "tourze/proxy-protocol-core": "0.0.*",
+    "tourze/workerman-connection-pipe": "0.0.*",
+    "workerman/workerman": "^5.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tourze\\Workerman\\ProxyProtocol\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tourze\\Workerman\\ProxyProtocol\\Tests\\": "tests"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0"
+  }
+}
