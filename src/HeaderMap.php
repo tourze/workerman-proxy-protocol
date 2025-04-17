@@ -2,6 +2,7 @@
 
 namespace Tourze\Workerman\ProxyProtocol;
 
+use Tourze\ProxyProtocol\Model\HeaderInterface;
 use WeakMap;
 use Workerman\Connection\ConnectionInterface;
 
@@ -38,9 +39,9 @@ class HeaderMap
      * 获取连接的代理协议头信息
      *
      * @param ConnectionInterface $connection 连接对象
-     * @return object|null 头信息，不存在时返回null
+     * @return HeaderInterface|null 头信息，不存在时返回null
      */
-    public static function get(ConnectionInterface $connection): ?object
+    public static function get(ConnectionInterface $connection): ?HeaderInterface
     {
         return self::getInstance()[$connection] ?? null;
     }
@@ -49,9 +50,9 @@ class HeaderMap
      * 设置连接的代理协议头信息
      *
      * @param ConnectionInterface $connection 连接对象
-     * @param object $header 头信息
+     * @param HeaderInterface $header 头信息
      */
-    public static function set(ConnectionInterface $connection, object $header): void
+    public static function set(ConnectionInterface $connection, HeaderInterface $header): void
     {
         self::getInstance()[$connection] = $header;
     }

@@ -4,7 +4,7 @@
   "license": "MIT",
   "require": {
     "php": "^8.1",
-    "tourze/proxy-protocol-core": "0.0.*",
+    "tourze/proxy-protocol-core": "^0.0.2",
     "tourze/workerman-connection-pipe": "0.0.*",
     "workerman/workerman": "^5.1"
   },
