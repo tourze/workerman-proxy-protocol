@@ -3,14 +3,13 @@
   "description": "ProxyProtocol V1",
   "license": "MIT",
   "require": {
-    "php": "^8.1",
     "tourze/proxy-protocol-core": "^0.0.2",
-    "tourze/workerman-connection-pipe": "^0.0.3",
+    "tourze/workerman-connection-pipe": "0.0.*",
     "workerman/workerman": "^5.1"
   },
   "require-dev": {
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^10.0"
+    "phpunit/phpunit": "^11.5"
   },
   "autoload": {
     "psr-4": {

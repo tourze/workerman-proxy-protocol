@@ -2,16 +2,22 @@
 
 namespace Tourze\Workerman\ProxyProtocol\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Tourze\ProxyProtocol\Model\V2Header;
 use Tourze\Workerman\ProxyProtocol\HeaderMap;
 use Tourze\Workerman\ProxyProtocol\ProxyProtocolV2;
 use Workerman\Connection\ConnectionInterface;
 
-class ProxyProtocolV2Test extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ProxyProtocolV2::class)]
+final class ProxyProtocolV2Test extends TestCase
 {
     /**
-     * @var ConnectionInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @var ConnectionInterface|MockObject
      */
     private $connection;
 
@@ -22,6 +28,8 @@ class ProxyProtocolV2Test extends TestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->connection = $this->createMock(ConnectionInterface::class);
         // 清理之前的测试可能留下的记录
         if (HeaderMap::has($this->connection)) {
@@ -44,6 +52,10 @@ class ProxyProtocolV2Test extends TestCase
     public function testInputWithAlreadyParsedHeader(): void
     {
         // 先设置一个已解析的头部
+        // 必须使用具体类 V2Header 而不是接口，因为：
+        // 1. V2Header 是协议解析的核心数据模型，包含特定的二进制数据结构
+        // 2. HeaderMap 需要存储和检索具体的 V2Header 实例
+        // 3. 测试需要验证与具体协议实现的兼容性
         $header = $this->createMock(V2Header::class);
         HeaderMap::set($this->connection, $header);
 
@@ -68,7 +80,8 @@ class ProxyProtocolV2Test extends TestCase
     {
         // 设置 connection 的期望行为
         $this->connection->expects($this->once())
-            ->method('close');
+            ->method('close')
+        ;
 
         // 无效的签名
         $invalidSignatureData = str_repeat('X', 16); // 长度够但签名错误
@@ -104,6 +117,10 @@ class ProxyProtocolV2Test extends TestCase
     public function testDecodeAfterHeaderParsed(): void
     {
         // 先设置一个已解析的头部
+        // 必须使用具体类 V2Header 而不是接口，因为：
+        // 1. V2Header 是协议解析的核心数据模型，包含特定的二进制数据结构
+        // 2. HeaderMap 需要存储和检索具体的 V2Header 实例
+        // 3. 测试需要验证与具体协议实现的兼容性
         $header = $this->createMock(V2Header::class);
         HeaderMap::set($this->connection, $header);
 

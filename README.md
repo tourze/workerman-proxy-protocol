@@ -1,72 +1,105 @@
 # Workerman Proxy Protocol
 
-这是一个用于 Workerman 框架的代理协议（Proxy Protocol）实现，支持 V1 和 V2 版本。
+[English](README.md) | [中文](README.zh-CN.md)
 
-## 功能特性
+[![Latest Version](https://img.shields.io/packagist/v/tourze/workerman-proxy-protocol.svg?style=flat-square)](https://packagist.org/packages/tourze/workerman-proxy-protocol)
+[![Total Downloads](https://img.shields.io/packagist/dt/tourze/workerman-proxy-protocol.svg?style=flat-square)](https://packagist.org/packages/tourze/workerman-proxy-protocol)
 
-- 支持代理协议 V1 和 V2 版本
-- 兼容 Workerman 框架的协议接口
-- 自动解析代理协议头部信息
-- 使用 WeakMap 管理连接与协议头的映射，避免内存泄漏
+A Proxy Protocol implementation for Workerman framework, supporting both V1 and V2 versions.
 
-## 安装
+## Features
+
+- Support for Proxy Protocol V1 and V2 versions
+- Compatible with Workerman framework protocol interface
+- Automatic parsing of proxy protocol headers
+- Uses WeakMap to manage connection-to-header mapping, preventing memory leaks
+- Strict compliance with HAProxy Proxy Protocol specification
+- Support for TCP4, TCP6, and UNKNOWN connection types
+
+## Installation
 
 ```bash
 composer require tourze/workerman-proxy-protocol
 ```
 
-## 使用方法
+## Requirements
 
-### 在 Workerman 中使用
+- PHP >= 8.1
+- Workerman >= 5.1
+- tourze/proxy-protocol-core
+
+## Quick Start
+
+### Using Proxy Protocol V1
 
 ```php
 <?php
 
 use Workerman\Worker;
 use Tourze\Workerman\ProxyProtocol\ProxyProtocolV1;
-use Tourze\Workerman\ProxyProtocol\ProxyProtocolV2;
 use Tourze\Workerman\ProxyProtocol\HeaderMap;
 
-// 创建 Worker 实例
+// Create Worker instance
 $worker = new Worker('tcp://0.0.0.0:8080');
 
-// 使用代理协议 V1（或者使用 ProxyProtocolV2::class 支持 V2 版本）
+// Use Proxy Protocol V1
 $worker->protocol = ProxyProtocolV1::class;
 
-// 在连接回调中处理连接
-$worker->onConnect = function($connection) {
-    echo "新连接建立\n";
-};
-
-// 在消息回调中可以访问代理协议信息
+// Handle incoming messages with proxy protocol information
 $worker->onMessage = function($connection, $data) {
-    // 检查是否解析了代理协议头
+    // Check if proxy protocol header was parsed
     if (HeaderMap::has($connection)) {
         $header = HeaderMap::get($connection);
         
-        // 获取客户端原始 IP 和端口信息
+        // Get client's original IP and port
         $sourceIp = $header->getSourceIp();
         $sourcePort = $header->getSourcePort();
         
-        echo "收到来自 {$sourceIp}:{$sourcePort} 的数据：" . $data . "\n";
+        echo "Received data from {$sourceIp}:{$sourcePort}: " . $data . "\n";
         
-        // 响应客户端
-        $connection->send("你的 IP 是 {$sourceIp}，端口是 {$sourcePort}\n");
+        // Respond to client
+        $connection->send("Your IP is {$sourceIp}, port is {$sourcePort}\n");
     } else {
-        echo "收到数据，但未解析代理协议头：" . $data . "\n";
-        $connection->send("未能获取你的真实 IP\n");
+        echo "Received data without proxy protocol header: " . $data . "\n";
+        $connection->send("Could not get your real IP\n");
     }
 };
 
-// 运行 worker
+// Run worker
 Worker::runAll();
 ```
 
-### 配合反向代理使用
+### Using Proxy Protocol V2
 
-在使用 HAProxy、Nginx 等支持代理协议的服务器作为前端代理时，需要在代理配置中启用代理协议支持：
+```php
+<?php
 
-#### HAProxy 配置示例
+use Workerman\Worker;
+use Tourze\Workerman\ProxyProtocol\ProxyProtocolV2;
+use Tourze\Workerman\ProxyProtocol\HeaderMap;
+
+// Create Worker instance
+$worker = new Worker('tcp://0.0.0.0:8080');
+
+// Use Proxy Protocol V2
+$worker->protocol = ProxyProtocolV2::class;
+
+// Message handling logic is the same as V1
+$worker->onMessage = function($connection, $data) {
+    if (HeaderMap::has($connection)) {
+        $header = HeaderMap::get($connection);
+        // Handle message...
+    }
+};
+
+Worker::runAll();
+```
+
+## Using with Reverse Proxies
+
+When using servers like HAProxy or Nginx that support proxy protocol as frontend proxies, you need to enable proxy protocol support in the proxy configuration:
+
+### HAProxy Configuration Example
 
 ```
 frontend http
@@ -75,7 +108,7 @@ frontend http
     option tcplog
     option tcp-check
     option forwardfor
-    # 启用代理协议
+    # Enable proxy protocol
     use_backend workerman send-proxy
 
 backend workerman
@@ -83,7 +116,7 @@ backend workerman
     server workerman1 127.0.0.1:8080 check
 ```
 
-#### Nginx 配置示例
+### Nginx Configuration Example
 
 ```
 upstream workerman {
@@ -94,20 +127,39 @@ server {
     listen 80;
     
     location / {
-        # 启用代理协议
+        # Enable proxy protocol
         proxy_pass http://workerman;
         proxy_protocol on;
     }
 }
 ```
 
-## 依赖
+## API Documentation
 
-- PHP >= 8.1
-- Workerman >= 5.1
-- tourze/proxy-protocol-core
+### HeaderMap Class
 
-## 参考资料
+Static methods for managing connection-to-header mapping:
 
-- [Proxy Protocol 规范](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt)
-- [Workerman 文档](https://www.workerman.net/doc)
+- `HeaderMap::get(ConnectionInterface $connection): ?HeaderInterface` - Get proxy protocol header for connection
+- `HeaderMap::set(ConnectionInterface $connection, HeaderInterface $header): void` - Set proxy protocol header for connection
+- `HeaderMap::has(ConnectionInterface $connection): bool` - Check if connection has proxy protocol header
+- `HeaderMap::remove(ConnectionInterface $connection): void` - Remove proxy protocol header for connection
+
+### Header Interface
+
+Proxy protocol header objects implement `HeaderInterface` interface, providing these methods:
+
+- `getSourceIp(): string` - Get client source IP
+- `getSourcePort(): int` - Get client source port
+- `getTargetIp(): string` - Get target server IP
+- `getTargetPort(): int` - Get target server port
+- `getProtocol(): string` - Get protocol type (TCP4, TCP6)
+
+## License
+
+The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
+
+## References
+
+- [Proxy Protocol Specification](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt)
+- [Workerman Documentation](https://www.workerman.net/doc)

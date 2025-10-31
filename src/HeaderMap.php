@@ -17,19 +17,19 @@ class HeaderMap
     /**
      * 存储连接与头信息的映射
      *
-     * @var WeakMap<ConnectionInterface, object>
+     * @var \WeakMap<ConnectionInterface, HeaderInterface>
      */
-    private static WeakMap $map;
+    private static \WeakMap $map;
 
     /**
      * 获取单例实例
      *
-     * @return WeakMap
+     * @return \WeakMap<ConnectionInterface, HeaderInterface>
      */
-    private static function getInstance(): WeakMap
+    private static function getInstance(): \WeakMap
     {
         if (!isset(self::$map)) {
-            self::$map = new WeakMap();
+            self::$map = new \WeakMap();
         }
 
         return self::$map;
@@ -39,6 +39,7 @@ class HeaderMap
      * 获取连接的代理协议头信息
      *
      * @param ConnectionInterface $connection 连接对象
+     *
      * @return HeaderInterface|null 头信息，不存在时返回null
      */
     public static function get(ConnectionInterface $connection): ?HeaderInterface
@@ -50,7 +51,7 @@ class HeaderMap
      * 设置连接的代理协议头信息
      *
      * @param ConnectionInterface $connection 连接对象
-     * @param HeaderInterface $header 头信息
+     * @param HeaderInterface     $header     头信息
      */
     public static function set(ConnectionInterface $connection, HeaderInterface $header): void
     {
@@ -61,6 +62,7 @@ class HeaderMap
      * 检查连接是否有代理协议头信息
      *
      * @param ConnectionInterface $connection 连接对象
+     *
      * @return bool 是否存在头信息
      */
     public static function has(ConnectionInterface $connection): bool

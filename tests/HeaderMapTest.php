@@ -2,6 +2,8 @@
 
 namespace Tourze\Workerman\ProxyProtocol\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Tourze\ProxyProtocol\Enum\Version;
 use Tourze\ProxyProtocol\Model\Address;
@@ -9,10 +11,14 @@ use Tourze\ProxyProtocol\Model\V1Header;
 use Tourze\Workerman\ProxyProtocol\HeaderMap;
 use Workerman\Connection\ConnectionInterface;
 
-class HeaderMapTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(HeaderMap::class)]
+final class HeaderMapTest extends TestCase
 {
     /**
-     * @var ConnectionInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @var ConnectionInterface|MockObject
      */
     private $connection;
 
@@ -23,6 +29,8 @@ class HeaderMapTest extends TestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->connection = $this->createMock(ConnectionInterface::class);
 
         // 创建一个测试用的头部信息
@@ -88,8 +96,12 @@ class HeaderMapTest extends TestCase
         }
 
         // 由于使用了 WeakMap，当连接对象被释放后，HeaderMap 中对应的条目应该也会被自动释放
-        // 但是我们无法直接检查这一点，因为对象已经被释放了
-        // 这里我们只是确认代码执行时没有出错
-        $this->assertTrue(true);
+        // 虽然无法直接检查对象被垃圾回收，但我们可以检查 HeaderMap 在主连接上的正常功能
+        // 确认主连接仍然可以正常使用 HeaderMap 功能
+        $this->assertFalse(HeaderMap::has($this->connection));
+
+        // 设置并验证主连接的头信息仍然正常工作
+        HeaderMap::set($this->connection, $this->header);
+        $this->assertTrue(HeaderMap::has($this->connection));
     }
 }

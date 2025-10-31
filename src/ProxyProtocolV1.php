@@ -15,8 +15,8 @@ use Workerman\Protocols\ProtocolInterface;
  */
 class ProxyProtocolV1 implements ProtocolInterface
 {
-    const RULE = '@PROXY (TCP4|TCP6|UNKNOWN)(.*?)\r\n@';
-    const HEADER = 'PROXY';
+    public const RULE = '@PROXY (TCP4|TCP6|UNKNOWN)(.*?)\r\n@';
+    public const HEADER = 'PROXY';
 
     public static function input(string $buffer, ConnectionInterface $connection): int
     {
@@ -27,7 +27,7 @@ class ProxyProtocolV1 implements ProtocolInterface
         }
 
         // 未解析过，开始判断是否有协议头咯
-        if (str_starts_with($buffer, self::HEADER) && preg_match(self::RULE, $buffer, $match)) {
+        if (str_starts_with($buffer, self::HEADER) && 1 === preg_match(self::RULE, $buffer, $match)) {
             // 第一个包只处理协议头部分
             return strlen($match[0]);
         }
@@ -52,6 +52,7 @@ class ProxyProtocolV1 implements ProtocolInterface
         // So a 108-byte buffer is always enough to store all the line and a trailing zero for string processing.
         if ($length > 108) {
             $connection->close();
+
             return 0;
         }
 
@@ -64,24 +65,28 @@ class ProxyProtocolV1 implements ProtocolInterface
             // 处理协议头
             if (!str_starts_with($buffer, self::HEADER)) {
                 $connection->close();
+
                 return '';
             }
 
-            if (!preg_match(self::RULE, $buffer, $match)) {
+            if (1 !== preg_match(self::RULE, $buffer, $match)) {
                 $connection->close();
+
                 return '';
             }
 
-            if ($match[1] === 'UNKNOWN') {
+            if ('UNKNOWN' === $match[1]) {
                 // UNKNOWN我们直接不处理，断开算了
                 $connection->close();
+
                 return '';
             }
 
             // 匹配其他信息
-            if (!preg_match('@ (.*?) (.*?) (\d+) (\d+)@', $match[2], $infoMatch)) {
+            if (1 !== preg_match('@ (.*?) (.*?) (\d+) (\d+)@', $match[2], $infoMatch)) {
                 // 匹配不到目标和端口信息
                 $connection->close();
+
                 return '';
             }
 
@@ -90,12 +95,13 @@ class ProxyProtocolV1 implements ProtocolInterface
             $header->setProtocol($match[1]);
 
             // 创建源地址和目标地址
-            $sourceAddress = new Address($infoMatch[1], (int)$infoMatch[3]);
-            $targetAddress = new Address($infoMatch[2], (int)$infoMatch[4]);
+            $sourceAddress = new Address($infoMatch[1], (int) $infoMatch[3]);
+            $targetAddress = new Address($infoMatch[2], (int) $infoMatch[4]);
 
             $header->setSourceAddress($sourceAddress);
             $header->setTargetAddress($targetAddress);
             HeaderMap::set($connection, $header);
+
             // 抛弃协议头
             return '';
         }

@@ -2,6 +2,8 @@
 
 namespace Tourze\Workerman\ProxyProtocol\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Tourze\ProxyProtocol\Enum\Version;
 use Tourze\ProxyProtocol\Model\V1Header;
@@ -9,15 +11,21 @@ use Tourze\Workerman\ProxyProtocol\HeaderMap;
 use Tourze\Workerman\ProxyProtocol\ProxyProtocolV1;
 use Workerman\Connection\ConnectionInterface;
 
-class ProxyProtocolV1Test extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ProxyProtocolV1::class)]
+final class ProxyProtocolV1Test extends TestCase
 {
     /**
-     * @var ConnectionInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @var ConnectionInterface|MockObject
      */
     private $connection;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->connection = $this->createMock(ConnectionInterface::class);
         // 清理之前的测试可能留下的记录
         if (HeaderMap::has($this->connection)) {
@@ -38,10 +46,11 @@ class ProxyProtocolV1Test extends TestCase
     {
         // 设置 connection 的期望行为
         $this->connection->expects($this->never())
-            ->method('close');
+            ->method('close')
+        ;
 
         // 测试不完整的数据
-        $incompleteHeader = "PROXY TCP4 192.168.1.1";
+        $incompleteHeader = 'PROXY TCP4 192.168.1.1';
         $result = ProxyProtocolV1::input($incompleteHeader, $this->connection);
 
         // 数据不完整，应该返回0表示需要更多数据
@@ -52,7 +61,8 @@ class ProxyProtocolV1Test extends TestCase
     {
         // 设置 connection 的期望行为
         $this->connection->expects($this->once())
-            ->method('close');
+            ->method('close')
+        ;
 
         // 测试过长但不符合规则的数据
         $tooLongInvalidData = str_repeat('X', 109);
@@ -66,7 +76,8 @@ class ProxyProtocolV1Test extends TestCase
     {
         // 设置 connection 的期望行为
         $this->connection->expects($this->never())
-            ->method('close');
+            ->method('close')
+        ;
 
         $validHeader = "PROXY TCP4 192.168.1.1 192.168.1.2 12345 80\r\n";
         $result = ProxyProtocolV1::decode($validHeader, $this->connection);
@@ -88,7 +99,8 @@ class ProxyProtocolV1Test extends TestCase
     {
         // 设置 connection 的期望行为
         $this->connection->expects($this->once())
-            ->method('close');
+            ->method('close')
+        ;
 
         // 无效的头部数据
         $invalidHeader = "PROXY INVALID DATA\r\n";
@@ -103,7 +115,8 @@ class ProxyProtocolV1Test extends TestCase
     {
         // 设置 connection 的期望行为
         $this->connection->expects($this->once())
-            ->method('close');
+            ->method('close')
+        ;
 
         // UNKNOWN协议数据
         $unknownHeader = "PROXY UNKNOWN\r\n";

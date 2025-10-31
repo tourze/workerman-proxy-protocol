@@ -28,11 +28,19 @@ class ProxyProtocolV2 implements ProtocolInterface
         if (!str_starts_with($buffer, V2Header::SIG_DATA)) {
             // 不符合要求，直接退出
             $connection->close();
+
             return 0;
         }
         // 第 15 和第 16 个字节是按网络字节序排列的地址长度（以字节为单位）。
         // 协议头的长度（以字节为单位）始终正好是 16 + 此值
-        $destLen = unpack('n', substr($buffer, 12 + 1 + 1, 2))[1];
+        $unpackResult = unpack('n', substr($buffer, 12 + 1 + 1, 2));
+        if (false === $unpackResult) {
+            $connection->close();
+
+            return 0;
+        }
+        $destLen = $unpackResult[1];
+
         // 总的协议头长度可以计算出来了
         return 12 + 1 + 1 + 2 + $destLen;
     }
@@ -41,8 +49,14 @@ class ProxyProtocolV2 implements ProtocolInterface
     {
         if (!HeaderMap::has($connection)) {
             // 头包的处理
-            $header = V2Header::parseHeader($buffer);
-            HeaderMap::set($connection, $header);
+            $parseResult = V2Header::parseHeader($buffer);
+            if (null === $parseResult['header']) {
+                $connection->close();
+
+                return '';
+            }
+            HeaderMap::set($connection, $parseResult['header']);
+
             return '';
         }
 
