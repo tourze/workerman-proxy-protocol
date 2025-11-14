@@ -3,7 +3,7 @@
   "description": "ProxyProtocol V1",
   "license": "MIT",
   "require": {
-    "tourze/proxy-protocol-core": "^0.0.2",
+    "tourze/proxy-protocol-core": "0.1.*",
     "tourze/workerman-connection-pipe": "0.0.*",
     "workerman/workerman": "^5.1"
   },
