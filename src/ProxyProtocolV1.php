@@ -111,6 +111,22 @@ class ProxyProtocolV1 implements ProtocolInterface
 
     public static function encode(mixed $data, ConnectionInterface $connection): string
     {
-        return $data;
+        if (is_string($data)) {
+            return $data;
+        }
+
+        if (is_scalar($data)) {
+            return (string) $data;
+        }
+
+        // For objects or arrays, attempt string conversion
+        if (is_object($data) && method_exists($data, '__toString')) {
+            return (string) $data;
+        }
+
+        // Fallback: JSON encode for complex types
+        $encoded = json_encode($data, JSON_THROW_ON_ERROR);
+
+        return false !== $encoded ? $encoded : '';
     }
 }
